@@ -16,6 +16,7 @@ extern "C" {
 
 int hal_storage_read(uint16_t addr, uint8_t *value, uint16_t len);
 int hal_storage_write(uint16_t addr, const uint8_t *value, uint16_t len);
+int hal_storage_write_end(void *value, int8_t len, uint8_t data);
 
 #ifdef __cplusplus
 }

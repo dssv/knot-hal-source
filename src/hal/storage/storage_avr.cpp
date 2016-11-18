@@ -11,9 +11,9 @@
 
 // Address where each data is stored at the end of EEPROM
 #define ADDR_UUID		0
-#define ADDR_TOKEN		40
-#define ADDR_SIZE_CONFIG	76
-#define ADDR_CONFIG		78
+#define ADDR_TOKEN		41
+#define ADDR_SIZE_CONFIG	83
+#define ADDR_CONFIG		84
 
 // Identifier of data type to be stored
 #define DATA_UUID		0
@@ -52,14 +52,15 @@ int hal_storage_write(uint16_t addr, const uint8_t *value, uint16_t len)
 	return i;
 }
 
-
-int hal_storage_write_end(void *value, uint16_t len, uint8_t data)
+int hal_storage_write_end(void *value, int8_t len, uint8_t data)
 {
 	/* Position where the data will be stored */
-	int dst;
+	uint16_t dst;
 
-	/*
-	 * Calculate different addresses to store the
+	/* Pointer to the size of data, used as parameter */
+	const uint8_t *lenght = (const uint8_t*) &len;
+
+	/* Calculate different addresses to store the
 	 * value according to the parameter passed.
 	 */
 	switch (data) {
@@ -71,15 +72,17 @@ int hal_storage_write_end(void *value, uint16_t len, uint8_t data)
 		break;
 	case DATA_CONFIG:
 		dst = E2END - len - ADDR_CONFIG;
-		/* Store the size of the config to know where it end in the EEPROM */
-		hal_storage_write(E2END - ADDR_SIZE_CONFIG, len, 2);
+		/* Store the size of the config, 2 bytes, to know
+		 * where it end in the EEPROM.
+		 */
+		hal_storage_write(E2END - ADDR_SIZE_CONFIG, lenght, 2);
 		break;
 	default:
 		return -1;
 	}
 
-	/* Store all the block in the calculated position */
-	eeprom_write_block(value, dst, len);
+	/*Store all the block in the calculated position*/
+	eeprom_write_block(value, (void*) dst, len);
 
 	return len;
 }
