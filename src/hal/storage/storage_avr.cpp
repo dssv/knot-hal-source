@@ -12,13 +12,15 @@
 // Address where each data is stored at the end of EEPROM
 #define ADDR_UUID		0
 #define ADDR_TOKEN		41
-#define ADDR_SIZE_CONFIG	83
-#define ADDR_CONFIG		84
+#define ADDR_MAC		81
+#define ADDR_SIZE_CONFIG	92
+#define ADDR_CONFIG		93
 
 // Identifier of data type to be stored
 #define DATA_UUID		0
 #define DATA_TOKEN		1
-#define DATA_CONFIG		2
+#define DATA_MAC		2
+#define DATA_CONFIG		3
 
 int hal_storage_read(uint16_t addr, uint8_t *value, uint16_t len)
 {
@@ -68,6 +70,9 @@ int hal_storage_write_end(void *value, int8_t len, uint8_t data)
 	case DATA_TOKEN:
 		dst = E2END - len - ADDR_TOKEN;
 		break;
+	case DATA_MAC:
+		dst = E2END - len - ADDR_MAC;
+		break;
 	case DATA_CONFIG:
 		dst = E2END - len - ADDR_CONFIG;
 		/* Store the size of the config, 2 bytes, to know
@@ -102,6 +107,9 @@ int hal_storage_read_end(void *value, int8_t len, uint8_t data)
 		break;
 	case DATA_TOKEN:
 		dst = E2END - len - ADDR_TOKEN;
+		break;
+	case DATA_MAC:
+		dst = E2END - len - ADDR_MAC;
 		break;
 	case DATA_CONFIG:
 		/* Read the size of the config, 2 bytes, to know
