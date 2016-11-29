@@ -84,3 +84,38 @@ int hal_storage_write_end(void *value, int8_t len, uint8_t data)
 
 	return len;
 }
+
+int hal_storage_read_end(void *value, int8_t len, uint8_t data)
+{
+	/* Position where the data will be stored */
+	uint16_t dst;
+
+	/* Pointer to the size of data, used as parameter */
+	uint8_t *lenght = (uint8_t*) &len;
+
+	/* Calculate different addresses to read the
+	 * value according to the parameter passed.
+	 */
+	switch (data) {
+	case DATA_UUID:
+		dst = E2END - len - ADDR_UUID;
+		break;
+	case DATA_TOKEN:
+		dst = E2END - len - ADDR_TOKEN;
+		break;
+	case DATA_CONFIG:
+		/* Read the size of the config, 2 bytes, to know
+		 * where it end in the EEPROM.
+		 */
+		hal_storage_read(E2END - ADDR_SIZE_CONFIG, lenght, 2);
+		dst = E2END - len - ADDR_CONFIG;
+		break;
+	default:
+		return -1;
+	}
+
+	/*Read all the block in the calculated position*/
+	eeprom_read_block(value, (const void*) dst, len);
+
+	return len;
+}
