@@ -32,6 +32,7 @@ size_t hal_storage_read(void *addr, uint8_t *value, size_t len)
 		uint8_t *offset;
 		uint16_t address;
 	} config;
+
 	uint8_t	 *offset = (uint8_t *)addr;
 
         config.address = eeprom_read_word((const uint16_t*) ADDR_OFFSET_CONFIG);
@@ -43,25 +44,22 @@ size_t hal_storage_read(void *addr, uint8_t *value, size_t len)
 	return i;
 }
 
-size_t hal_storage_write(void *addr, const uint8_t *value, size_t len)
+int hal_storage_write(uint16_t addr, const uint16_t *value, uint16_t len)
 {
-	size_t i;
-	union {
-		uint8_t *offset;
-		uint16_t address;
-	} config;
-	uint8_t	 *offset = (uint8_t *)addr;
-
-        config.address = eeprom_read_word((const uint16_t*) ADDR_OFFSET_CONFIG);
+	uint16_t i;
 
 	/* E2END represents the last EEPROM address */
-	for (i = 0; i < len && offset < config.offset; ++i, ++offset)
-		eeprom_write_word((uint16_t*) offset, *value++);
+	for (i = 0; i < len; i++) {
+		if ((addr + i) > (E2END + 1))
+			break;
+
+		eeprom_write_word((uint16_t*) addr + i, value[i]);
+	}
 
 	return i;
 }
 
-size_t hal_storage_write_end(void *value, size_t len, uint8_t id)
+int hal_storage_write_end(void *value, int16_t len, uint8_t type)
 {
 	/* Position where the data will be stored */
 	uint16_t dst;
@@ -69,98 +67,67 @@ size_t hal_storage_write_end(void *value, size_t len, uint8_t id)
 	/* Calculate different addresses to store the
 	 * value according to the parameter passed.
 	 */
-	switch (id) {
-	case HAL_STORAGE_ID_UUID:
-		if(len != UUID_SIZE)
-			return -EINVAL;
-
-		dst = ADDR_UUID;
+	switch (type) {
+	case DATA_UUID:
+		dst = E2END - ADDR_UUID;
 		break;
-	case HAL_STORAGE_ID_TOKEN:
-		if(len != TOKEN_SIZE)
-			return -EINVAL;
-
-		dst = ADDR_TOKEN;
+	case DATA_TOKEN:
+		dst = E2END - ADDR_TOKEN;
 		break;
-	case HAL_STORAGE_ID_MAC:
-		if(len != MAC_SIZE)
-			return -EINVAL;
-
-		dst = ADDR_MAC;
+	case DATA_MAC:
+		dst = E2END - ADDR_MAC;
 		break;
-	case HAL_STORAGE_ID_CONFIG:
-		if(len > EEPROM_SIZE_FREE)
-			return -EINVAL;
-
-		dst = ADDR_OFFSET_CONFIG - len;
+	case DATA_CONFIG:
+		dst = E2END - len - ADDR_CONFIG;
 		/* Store the size of the config, 2 bytes, to know
 		 * where it end in the EEPROM.
 		 */
-		eeprom_write_block(&dst, (void *)ADDR_OFFSET_CONFIG,
-					CONFIG_SIZE);
+		hal_storage_write(E2END - ADDR_SIZE_CONFIG,
+						(const uint16_t*)dst, 1);
 		break;
 	default:
-		return -EINVAL;
+		return -1;
 	}
 
 	/*Store all the block in the calculated position*/
-	eeprom_write_block(value, (void *)dst, len);
+	eeprom_write_block(value, (void*) dst, len);
 
 	return len;
 }
 
-size_t hal_storage_read_end(void *value, size_t len, uint8_t id)
+int hal_storage_read_end(void *value, int16_t len, uint8_t type)
 {
 	/* Position where the data will be stored */
-	uint16_t src;
+	uint16_t dst;
 
-	void *config_offset = NULL;
+	uint16_t *config_size = 0;
 
 	/* Calculate different addresses to read the
 	 * value according to the parameter passed.
 	 */
-	switch (id) {
-	case HAL_STORAGE_ID_UUID:
-		if(len != UUID_SIZE)
-			return -EINVAL;
-
-		src = ADDR_UUID;
+	switch (type) {
+	case DATA_UUID:
+		dst = E2END - ADDR_UUID;
 		break;
-
-	case HAL_STORAGE_ID_TOKEN:
-		if(len != TOKEN_SIZE)
-			return -EINVAL;
-
-		src = ADDR_TOKEN;
+	case DATA_TOKEN:
+		dst = E2END - ADDR_TOKEN;
 		break;
-
-	case HAL_STORAGE_ID_MAC:
-		if(len != MAC_SIZE)
-			return -EINVAL;
-
-		src = ADDR_MAC;
+	case DATA_MAC:
+		dst = E2END - ADDR_MAC;
 		break;
-
-	case HAL_STORAGE_ID_CONFIG:
+	case DATA_CONFIG:
 		/* Read the size of the config, 2 bytes, to know
 		 * where it end in the EEPROM.
 		 */
-		eeprom_read_block(&config_offset,
-			(const void *)ADDR_OFFSET_CONFIG, CONFIG_SIZE);
-
-		if(len > (((size_t)ADDR_OFFSET_CONFIG) -
-						((size_t)config_offset)))
-			return -EINVAL;
-
-		src = (uint16_t)config_offset;
+		hal_storage_read(E2END - ADDR_SIZE_CONFIG, config_size, 1);
+		dst = E2END - (uint16_t)config_size - ADDR_CONFIG;
 		break;
-
 	default:
-		return -EINVAL;
+		return -1;
 	}
 
 	/*Read all the block in the calculated position*/
-	eeprom_read_block(value, (const void *)src, len);
+	eeprom_read_block(value, (const void*) dst, len);
 
 	return len;
 }
