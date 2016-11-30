@@ -44,17 +44,20 @@ size_t hal_storage_read(void *addr, uint8_t *value, size_t len)
 	return i;
 }
 
-int hal_storage_write(uint16_t addr, const uint16_t *value, uint16_t len)
+size_t hal_storage_write(void *addr, const uint8_t *value, size_t len)
 {
-	uint16_t i;
+	size_t i;
+	union {
+		uint8_t *offset;
+		uint16_t address;
+	} config;
+	uint8_t	 *offset = (uint8_t *)addr;
+
+        config.address = eeprom_read_word((const uint16_t*) ADDR_OFFSET_CONFIG);
 
 	/* E2END represents the last EEPROM address */
-	for (i = 0; i < len; i++) {
-		if ((addr + i) > (E2END + 1))
-			break;
-
-		eeprom_write_word((uint16_t*) addr + i, value[i]);
-	}
+	for (i = 0; i < len && offset < config.offset; ++i, ++offset)
+		eeprom_write_word((uint16_t*) offset, *value++);
 
 	return i;
 }
