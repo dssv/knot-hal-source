@@ -214,3 +214,9 @@ void hal_storage_reset_end(void)
 							SCHEMA_FLAG_SIZE);
 	eeprom_write_word((uint16_t *) ADDR_OFFSET_CONFIG, 0);
 }
+
+uint16_t hal_config_get_size(void)
+{
+
+	return eeprom_read_word((const uint16_t*) ADDR_OFFSET_CONFIG);
+}

@@ -30,6 +30,8 @@ ssize_t hal_storage_write(uint16_t addr, const uint8_t *value, size_t len);
 ssize_t hal_storage_write_end(uint8_t id, void *value, size_t len);
 ssize_t hal_storage_read_end(uint8_t id, void *value, size_t len);
 void hal_storage_reset_end(void);
+uint16_t hal_config_get_size(void);
+
 
 #ifdef __cplusplus
 }
