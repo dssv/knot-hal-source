@@ -198,3 +198,9 @@ void hal_storage_reset_end(void)
 	hal_storage_write_end(HAL_STORAGE_ID_MAC, data.mac, MAC_SIZE);
 	eeprom_write_word((uint16_t *) ADDR_OFFSET_CONFIG, 0);
 }
+
+uint16_t hal_get_size_config(void)
+{
+
+	return eeprom_read_word((const uint16_t*) ADDR_OFFSET_CONFIG);
+}
