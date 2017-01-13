@@ -233,6 +233,8 @@ void hal_storage_reset_end(void)
 		uint8_t token[TOKEN_SIZE];
 		uint8_t mac[MAC_SIZE];
 		uint8_t schema_flag[SCHEMA_FLAG_SIZE];
+		uint8_t private_key[PRIVATE_KEY_SIZE];
+		uint8_t public_key[PUBLIC_KEY_SIZE];
 	} data;
 
 	memset(&data, 0, sizeof(data));
@@ -242,5 +244,7 @@ void hal_storage_reset_end(void)
 	hal_storage_write_end(HAL_STORAGE_ID_MAC, data.mac, MAC_SIZE);
 	hal_storage_write_end(HAL_STORAGE_ID_SCHEMA_FLAG, data.schema_flag,
 							SCHEMA_FLAG_SIZE);
+	hal_storage_write_end(HAL_STORAGE_ID_PRIVATE_KEY, data.private_key, PRIVATE_KEY_SIZE);
+	hal_storage_write_end(HAL_STORAGE_ID_PUBLIC_KEY, data.public_key, PUBLIC_KEY_SIZE);
 	eeprom_write_word((uint16_t *) ADDR_OFFSET_CONFIG, 0);
 }
