@@ -42,7 +42,7 @@ ssize_t hal_storage_read(uint16_t addr, uint8_t *value, size_t len)
 	size_t i;
 
 	/* Safe guard to avoid reading 'protected' EEPROM area: config/uuid/token */
-        config.size = eeprom_read_word((const uint16_t*) ADDR_OFFSET_CONFIG);
+	config.size = eeprom_read_word((const uint16_t*) ADDR_OFFSET_CONFIG);
 	if (config.size > EEPROM_SIZE_FREE)
 		return 0;
 
@@ -65,7 +65,7 @@ ssize_t hal_storage_write(uint16_t addr, const uint8_t *value, size_t len)
 	size_t i;
 
 	/* Safe guard to avoid writing 'protected' EEPROM area: config/uuid/token */
-        config.size = eeprom_read_word((const uint16_t*) ADDR_OFFSET_CONFIG);
+	config.size = eeprom_read_word((const uint16_t*) ADDR_OFFSET_CONFIG);
 	if (config.size > EEPROM_SIZE_FREE)
 		return 0;
 
@@ -82,57 +82,38 @@ ssize_t hal_storage_write_end(uint8_t id, void *value, size_t len)
 {
 	/* Position where the data will be stored */
 	uint16_t dst;
+	/* Number of bytes written in the EEPROM with success */
+	size_t i = 0;
 
 	/* Calculate different addresses to store the
 	 * value according to the parameter passed.
 	 */
 	switch (id) {
 	case HAL_STORAGE_ID_UUID:
-		if (len != UUID_SIZE)
-			return -EINVAL;
-
 		dst = ADDR_UUID;
 		break;
 
 	case HAL_STORAGE_ID_TOKEN:
-		if (len != TOKEN_SIZE)
-			return -EINVAL;
-
 		dst = ADDR_TOKEN;
 		break;
 
 	case HAL_STORAGE_ID_MAC:
-		if (len != MAC_SIZE)
-			return -EINVAL;
-
 		dst = ADDR_MAC;
 		break;
 
 	case HAL_STORAGE_ID_SCHEMA_FLAG:
-		if (len != SCHEMA_FLAG_SIZE)
-			return -EINVAL;
-
 		dst = ADDR_SCHEMA_FLAG;
 		break;
 
 	case HAL_STORAGE_ID_PRIVATE_KEY:
-		if (len != PRIVATE_KEY_SIZE)
-			return -EINVAL;
-
 		dst = ADDR_PRIVATE_KEY;
 		break;
 
 	case HAL_STORAGE_ID_PUBLIC_KEY:
-		if (len != PUBLIC_KEY_SIZE)
-			return -EINVAL;
-
 		dst = ADDR_PUBLIC_KEY;
 		break;
 
 	case HAL_STORAGE_ID_CONFIG:
-		if (len > EEPROM_SIZE_FREE)
-			return -EINVAL;
-
 		/*
 		 * Stores the size of the config,
 		 * 2 bytes, to know where it end in the EEPROM.
@@ -149,59 +130,47 @@ ssize_t hal_storage_write_end(uint8_t id, void *value, size_t len)
 
 	/*Store all the block in the calculated position*/
 	if (len != 0)
-		eeprom_write_block(value, (void *) dst, len);
+		for (i = 0; i < len ; ++i, ++dst)
+			eeprom_write_block(((uint8_t*) value)+i, (void *) dst, 1);
 
-	return len;
+	else if (len > EEPROM_SIZE)
+		return -EINVAL;
+
+	return i;
 }
 
 ssize_t hal_storage_read_end(uint8_t id, void *value, size_t len)
 {
 	/* Position where the data will be stored */
 	uint16_t src;
+	/* Number of bytes from EEPROM with success */
+	size_t i = 0;
 
 	/* Calculate different addresses to read the
 	 * value according to the parameter passed.
 	 */
 	switch (id) {
 	case HAL_STORAGE_ID_UUID:
-		if (len != UUID_SIZE)
-			return -EINVAL;
-
 		src = ADDR_UUID;
 		break;
 
 	case HAL_STORAGE_ID_TOKEN:
-		if (len != TOKEN_SIZE)
-			return -EINVAL;
-
 		src = ADDR_TOKEN;
 		break;
 
 	case HAL_STORAGE_ID_MAC:
-		if (len != MAC_SIZE)
-			return -EINVAL;
-
 		src = ADDR_MAC;
 		break;
 
 	case HAL_STORAGE_ID_SCHEMA_FLAG:
-		if (len != SCHEMA_FLAG_SIZE)
-			return -EINVAL;
-
 		src = ADDR_SCHEMA_FLAG;
 		break;
 
 	case HAL_STORAGE_ID_PRIVATE_KEY:
-		if (len != PRIVATE_KEY_SIZE)
-			return -EINVAL;
-
 		src = ADDR_PRIVATE_KEY;
 		break;
 
 	case HAL_STORAGE_ID_PUBLIC_KEY:
-		if (len != PUBLIC_KEY_SIZE)
-			return -EINVAL;
-
 		src = ADDR_PUBLIC_KEY;
 		break;
 
@@ -228,9 +197,13 @@ ssize_t hal_storage_read_end(uint8_t id, void *value, size_t len)
 
 	/* Read all the block in the calculated position */
 	if (len != 0)
-		eeprom_read_block(value, (const void *) src, len);
+		for (i = 0; i < len ; ++i, ++src)
+			eeprom_read_block(((uint8_t*) value)+i, (void *) src, 1);
 
-	return len;
+	else if (len > EEPROM_SIZE)
+		return -EINVAL;
+
+	return i;
 }
 
 void hal_storage_reset_end(void)
