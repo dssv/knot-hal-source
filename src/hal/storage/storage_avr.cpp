@@ -205,11 +205,11 @@ ssize_t hal_storage_read_end(uint8_t id, void *value, size_t len)
 
 		src = ADDR_PUBLIC_KEY;
 		break;
-	case HAL_STORAGE_ID_SCHEMA_FLAG:
-		if(len != SCHEMA_FLAG_SIZE)
-			return -EINVAL;
+	case HAL_STORAGE_ID_FOREIGN_KEY:
+		if (len > FOREIGN_KEY_SIZE)
+			len = FOREIGN_KEY_SIZE;
 
-		src = ADDR_SCHEMA_FLAG;
+		src = ADDR_FOREIGN_KEY;
 		break;
 	case HAL_STORAGE_ID_CONFIG:
 		/*
