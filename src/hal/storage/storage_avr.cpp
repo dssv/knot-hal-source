@@ -264,11 +264,13 @@ void hal_storage_reset_end(void)
 
 	memset(&data, 0, sizeof(data));
 
-	hal_storage_write_end(HAL_STORAGE_ID_UUID, data.uuid, UUID_SIZE);
-	hal_storage_write_end(HAL_STORAGE_ID_TOKEN, data.token, TOKEN_SIZE);
-	hal_storage_write_end(HAL_STORAGE_ID_MAC, data.mac, MAC_SIZE);
+	hal_storage_write_end(HAL_STORAGE_ID_UUID, data.uuid,
+				sizeof(data.uuid));
+	hal_storage_write_end(HAL_STORAGE_ID_TOKEN, data.token,
+				sizeof(data.token));
+	hal_storage_write_end(HAL_STORAGE_ID_MAC, data.mac, sizeof(data.mac));
 	hal_storage_write_end(HAL_STORAGE_ID_SCHEMA_FLAG, data.schema_flag,
-							SCHEMA_FLAG_SIZE);
+				sizeof(data.schema_flag));
 	hal_storage_write_end(HAL_STORAGE_ID_PRIVATE_KEY, data.private_key,
 		 sizeof(data.private_key));
 	hal_storage_write_end(HAL_STORAGE_ID_PUBLIC_KEY, data.public_key,
