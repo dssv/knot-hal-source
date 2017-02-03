@@ -119,7 +119,7 @@ ssize_t hal_storage_write_end(uint8_t id, void *value, size_t len)
 	case HAL_STORAGE_ID_PUBLIC_KEY:
 		if (len != PUBLIC_KEY_SIZE)
 			return -EINVAL;
-			
+
 		dst = ADDR_PUBLIC_KEY;
 		break;
 	case HAL_STORAGE_ID_CONFIG:
@@ -201,11 +201,18 @@ ssize_t hal_storage_read_end(uint8_t id, void *value, size_t len)
 		 * 2 bytes, to know where it end in the EEPROM.
 		 */
 		src = eeprom_read_word((const uint16_t*) ADDR_OFFSET_CONFIG);
+
 		if (src > EEPROM_SIZE_FREE)
 			return -EFAULT;
 
+		if (len > src)
+			len = src;
+
 		if (src == 0)
 			return 0;
+
+		if (len > EEPROM_SIZE)
+			return -EINVAL;
 
 		/* Compute config address offset at eeprom */
 		src = ADDR_OFFSET_CONFIG - src;
