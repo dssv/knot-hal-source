@@ -124,7 +124,10 @@ ssize_t hal_storage_write_end(uint8_t id, void *value, size_t len)
 		dst = ADDR_PUBLIC_KEY;
 		break;
 	case HAL_STORAGE_ID_CONFIG:
-		if(len > EEPROM_SIZE_FREE)
+		/*
+		 * The max number of configs that the Thing can register is 5
+		 */
+		if ((len > CONFIG_SIZE_UNITY * 5) || (len > EEPROM_SIZE))
 			return -EINVAL;
 
 		/*
@@ -195,6 +198,11 @@ ssize_t hal_storage_read_end(uint8_t id, void *value, size_t len)
 		src = ADDR_PUBLIC_KEY;
 		break;
 	case HAL_STORAGE_ID_CONFIG:
+		/*
+		 * The max number of configs that the Thing can register is 5
+		 */
+		if (len > CONFIG_SIZE_UNITY * 5)
+			len = CONFIG_SIZE_UNITY * 5;
 
 		/*
 		 * Read the size of the config,
