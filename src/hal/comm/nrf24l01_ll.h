@@ -101,8 +101,8 @@ struct nrf24_ll_crtl_pdu {
 } __attribute__ ((packed));
 
 
-#define NRF24_KEEPALIVE_SEND_MS		2560
-#define NRF24_KEEPALIVE_TIMEOUT_MS	(10 * NRF24_KEEPALIVE_SEND_MS)
+#define NRF24_KEEPALIVE_SEND_MS		1280
+#define NRF24_KEEPALIVE_TIMEOUT_MS	(4 * NRF24_KEEPALIVE_SEND_MS)
 
 /*
  * Keep alive should be sent every 2560ms. Timeout happens
