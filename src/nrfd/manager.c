@@ -741,6 +741,9 @@ done:
 		peers[position].socket_fd = err;
 
 		peers[position].knotd_fd = connect_unix();
+		hal_log_info("peers[position].knotd_fd: %d \n",
+				peers[position].knotd_fd);
+
 		if (peers[position].knotd_fd < 0) {
 			hal_comm_close(peers[position].socket_fd);
 			peers[position].socket_fd = -1;
